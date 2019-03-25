@@ -107,7 +107,7 @@ void registration_handler(char *buf){
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
-   setup_timer(&(cur_task->wakeup_timer), wakeup_f, cur_task->pid);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
 
    mutex_lock(&lock);
    list_add(&(tmp->list), &(reglist.list));
@@ -139,7 +139,7 @@ int __init mp2_init(void)
    mutex_init(&lock);
 
    // initialize cache
-   cache = kmem_cache_create("cache", sizeof (struct linkedlist), 0, SLAB_HWCACHE_ALIGN, NULL, NULL);
+   cache = kmem_cache_create("cache", sizeof (struct linkedlist), 0, SLAB_HWCACHE_ALIGN, NULL);
    dispatching_t = kthread_create(dispatching_t_fn, NULL, "dispatching_t");
 
    printk(KERN_ALERT "MP2 MODULE LOADED\n");
