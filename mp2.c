@@ -7,6 +7,7 @@
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
 #include <linux/mutex.h> 
+#include <linux/slab.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Group_ID");
@@ -15,6 +16,7 @@ MODULE_DESCRIPTION("CS-423 MP2");
 #define FILENAME "status"
 #define DIRECTORY "mp2"
 #define DEBUG 1
+#define MASK 0666
 
 // file operations for file status
 static const struct file_operations mp2_file = {
@@ -76,7 +78,6 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    // mutex_lock(&lock);
    // list_add(&(tmp->list), &(reglist.list));
    // mutex_unlock(&lock);
-   int count = 0;
    return count;
 }
 
