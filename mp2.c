@@ -76,12 +76,10 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
-   char type;
    printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
-   type = (char) buf[0];
-   switch(type){
+   switch(char(buf[0])){
       case 'R':
          registration_handler(buf);
          break;
@@ -97,7 +95,7 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    return count;
 }
 
-void wakeup_f(unsigned long data){
+void wakeup_f(unsigned int pid){
    struct linkedlist *tmp = (struct linkedlist *)data;
    mutex_lock(&lock);
    tmp->task_state = READY;
@@ -120,7 +118,7 @@ void registration_handler(char *buf){
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
-   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
 
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
@@ -222,23 +220,31 @@ int admission_control(unsigned long period, unsigned long computation){
 }
 int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
-   struct linkedlist *old_task;
+   struct linkedlist *old_task = NULL;
    struct sched_param sparam;
    while(1){
-      next_task = get_best_ready_task();
-      if (running_task == NULL)  old_task = NULL;
-      else{
+      if(running_task){
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
+      next_task = get_best_ready_task();
       if (next_task){
          if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
             mutex_lock(&lock);
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         if(!old_task || next_task->period < old_task->period){
+         else if(old_task && next_task->period < old_task->period){
+            mutex_lock(&lock);
+            next_task->task_state = RUNNING;
+            mutex_unlock(&lock);
+            wake_up_process(next_task->linux_task);
+            sparam.sched_priority = 99;
+            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+            running_task = next_task->linux_task;
+         }
+         else if(!old_task){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
