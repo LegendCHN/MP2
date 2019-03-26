@@ -113,7 +113,7 @@ void registration_handler(char *buf){
    sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
    printk("pid: %u\n", cur_task->pid);
    if(admission_control(cur_task->period, cur_task->computation) == -1){
-      printk("Not able to register pid %u due to admission_control");
+      printk("Not able to register pid %u due to admission_control", cur_task->pid);
       kmem_cache_free(cache, cur_task);
       return;
    }
@@ -132,7 +132,7 @@ void yield_handler(char *buf){
    unsigned int pid;
    struct linkedlist *cur_task;
    unsigned long running_t, sleeping_t;
-   struct sched_param sparam; 
+   // struct sched_param sparam; 
    printk("in yield_handler\n");
    sscanf(&buf[2], "%u", &pid);
    cur_task = find_linkedlist_by_pid(pid);
@@ -210,7 +210,7 @@ struct linkedlist* find_linkedlist_by_pid(unsigned int pid){
    return NULL;
 }
 
-bool admission_control(unsigned long period, unsigned long computation){
+int admission_control(unsigned long period, unsigned long computation){
    unsigned long res = 0;
    list_for_each_safe(pos, q, &reglist.list){
       tmp= list_entry(pos, struct linkedlist, list);
