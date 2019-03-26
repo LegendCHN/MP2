@@ -282,7 +282,7 @@ void __exit mp2_exit(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
-thread_flag = 0
+thread_flag = 0;
    wake_up_process(dispatching_t);
    kthread_stop(dispatching_t);
    kmem_cache_destroy(cache);
