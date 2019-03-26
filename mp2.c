@@ -119,13 +119,15 @@ void registration_handler(char *buf){
    mutex_lock(&lock);
    list_add(&(tmp->list), &(reglist.list));
    mutex_unlock(&lock);
+   printk("out reg handler");
 }
 // yield handler
 void yield_handler(char *buf){
-   
+   printk("in yield_handler");
 }
 // de-register handler
 void de_registration_handler(char *buf){
+   printk("in de_registration_handler")
    unsigned int pid;
    struct linkedlist *tmp;
    sscanf(&buf[1], "%u", &pid);
@@ -144,6 +146,7 @@ void de_registration_handler(char *buf){
 
    }
    mutex_unlock(&lock);
+   printk("out de_registration_handler");
 }
 
 struct linkedlist *get_best_ready_task(void){
