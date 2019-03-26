@@ -65,13 +65,13 @@ int main(int argc, char* argv[])
 	unsigned int pid;
     unsigned long period, computation;
     bool success;
-    unsigned int num_jobs = JOBS
+    unsigned int num_jobs = JOBS;
 	pid = getpid();
     period = atoi(argv[1]);
     computation = computation_time();
     registeration(pid, period, computation);
     success = registered(pid);
-    if(!sucess){
+    if(!success){
         exit(1);
     }
     yield(pid);
@@ -81,6 +81,6 @@ int main(int argc, char* argv[])
         yield(pid);
         num_jobs--;
     }
-    deregisteration(unsigned int pid);
+    deregisteration(pid);
 	return 0;
 }
