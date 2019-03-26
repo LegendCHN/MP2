@@ -76,12 +76,12 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
-   char type;
+   char op;
    printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
-   type = (char) buf[0];
-   switch(type){
+   op = (char) buf[0];
+   switch(op){
       case 'R':
          registration_handler(buf);
          break;
@@ -156,7 +156,7 @@ void yield_handler(char *buf){
       // sparam.sched_priority=0; 
       // sched_setscheduler(cur_task->linux_task, SCHED_NORMAL, &sparam);
       schedule();
-      if (running_task != NULL && cur_task->pid == running_task->pid){
+      if (running_task != NULL && cur_task == running_task){
          running_task = NULL;
       }
    }
@@ -175,7 +175,7 @@ void de_registration_handler(char *buf){
    list_for_each_entry(tmp, &reglist.list, list){
       if(tmp->pid == pid){
          del_timer(&tmp->wakeup_timer);
-         if (running_task && running_task->pid == tmp->pid)
+         if (running_task && running_task == tmp)
             running_task = NULL;
          list_del(&tmp->list);
          kmem_cache_free(cache, tmp);
