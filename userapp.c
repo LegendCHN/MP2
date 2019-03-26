@@ -23,13 +23,15 @@ bool registered(unsigned int pid){
     FILE *fp;
     unsigned int tmp;
     fp = fopen("/proc/mp2/status", "r");
-    
+
     while(fscanf(fp, "pid: %u", &tmp) != EOF){
+        printf("checking.........")
         if(tmp == pid){
             printf("pid %u exists in /proc\n", pid);
             return true;
         }
     }
+    fclose(fp);
     printf("pid %u does not exist in /proc\n", pid);
     return false;
 }
