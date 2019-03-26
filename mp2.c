@@ -233,22 +233,12 @@ int dispatching_t_fn(void *data){
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
       if (next_task){
-         if(old_task){
-            if(old_task->task_state == RUNNING && next_task->period < old_task->period)
-               mutex_lock(&lock);
-               old_task->task_state = READY;
-               mutex_unlock(&lock);
-         }
-         else{
+         if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
             mutex_lock(&lock);
-            next_task->task_state = RUNNING;
+            old_task->task_state = READY;
             mutex_unlock(&lock);
-            wake_up_process(next_task->linux_task);
-            sparam.sched_priority = 99;
-            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
-            running_task = next_task->linux_task;
          }
-         if(next_task->period < old_task->period){
+         if(!old_task || next_task->period < old_task->period){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
@@ -258,6 +248,7 @@ int dispatching_t_fn(void *data){
             running_task = next_task->linux_task;
          }
       }
+
       set_current_state(TASK_INTERRUPTIBLE);
       schedule();
    }
