@@ -149,9 +149,12 @@ void yield_handler(char *buf){
       cur_task->task_state = SLEEPING;
       mutex_unlock(&lock);
       set_task_state(cur_task->linux_task, TASK_UNINTERRUPTIBLE);
-      sparam.sched_priority=0; 
-      sched_setscheduler(cur_task->linux_task, SCHED_NORMAL, &sparam);
+      // sparam.sched_priority=0; 
+      // sched_setscheduler(cur_task->linux_task, SCHED_NORMAL, &sparam);
       schedule();
+      if (running_task != NULL && cur_task->pid == running_task->pid){
+         running_task = NULL;
+      }
    }
    wake_up_process(dispatching_t); 
    printk("out yield_handler");
