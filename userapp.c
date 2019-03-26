@@ -23,6 +23,7 @@ bool registered(unsigned int pid){
     FILE *fp;
     unsigned int tmp;
     fp = fopen("/proc/mp2/status", "r");
+    
     while(fscanf(fp, "pid: %u", &tmp) != EOF){
         if(tmp == pid){
             printf("pid %u exists in /proc\n", pid);
@@ -62,6 +63,10 @@ unsigned long computation_time(){
 
 int main(int argc, char* argv[])
 {
+    if(argc != 2){
+        printf("Please enter period:\n");
+        exit(1);
+    }
 	unsigned int pid;
     unsigned long period, computation;
     bool success;

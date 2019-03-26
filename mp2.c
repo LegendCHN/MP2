@@ -62,6 +62,7 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
    }
 
    list_for_each_entry(tmp, &reglist.list, list){
+      printk("here")
       length = sprintf(buf + copied, "pid: %u, period: %lu, processing time: %lu\n", tmp->pid, tmp->period, tmp->computation);
       copied += length;
    }
@@ -150,7 +151,7 @@ int __init mp2_init(void)
    #endif
    // create dir and file under /proc
    proc_dir = proc_mkdir(DIRECTORY, NULL);
-   proc_entry = proc_create(FILENAME, MASK, proc_dir, & mp2_file);
+   proc_entry = proc_create(FILENAME, MASK, proc_dir, &mp2_file);
 
    // initialize linkedlist and lock
    INIT_LIST_HEAD(&reglist.list);
