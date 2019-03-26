@@ -221,16 +221,17 @@ int admission_control(unsigned long period, unsigned long computation){
 }
 int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
-   struct linkedlist *old_task = NULL;
+   struct linkedlist *old_task;
    struct sched_param sparam;
    while(1){
+      next_task = get_best_ready_task();
       // get old_task
-      if (running_task != NULL){
+      if (running_task == NULL)  old_task = NULL;
+      else{
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
-      next_task = get_best_ready_task();
       if (next_task){
          if(old_task){
             if(old_task->task_state == RUNNING && next_task->period < old_task->period)
