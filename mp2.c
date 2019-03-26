@@ -49,7 +49,7 @@ void free_linkedlist(void){
 }
 
 // read function to show pid, period and processing time
-static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, loff_t *data){
+static ssize_t mp2_read (struct file *file, char *buffer, size_t count, loff_t *data){
    int copied;
    int length;
    char *buf;
