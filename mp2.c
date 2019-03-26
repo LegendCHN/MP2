@@ -171,7 +171,7 @@ void de_registration_handler(char *buf){
    list_for_each_entry(tmp, &reglist.list, list){
       if(tmp->pid == pid){
          del_timer(&tmp->wakeup_timer);
-         if (running_task && running_task == tmp->linux_task)
+         if (running_task && running_task->pid == tmp->pid)
             running_task = NULL;
          list_del(&tmp->list);
          kmem_cache_free(cache, tmp);
