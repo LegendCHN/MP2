@@ -76,6 +76,7 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
+   char type;
    printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
@@ -112,7 +113,7 @@ void registration_handler(char *buf){
    sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
    printk("pid: %u\n", cur_task->pid);
    if(admission_control(cur_task->period, cur_task->computation) == -1){
-      printk("Not able to register pid %u due to admission_control");
+      // printk("Not able to register pid %u due to admission_control");
       kmem_cache_free(cache, cur_task);
       return;
    }
@@ -131,7 +132,7 @@ void yield_handler(char *buf){
    unsigned int pid;
    struct linkedlist *cur_task;
    unsigned long running_t, sleeping_t;
-   struct sched_param sparam; 
+   // struct sched_param sparam; 
    printk("in yield_handler\n");
    sscanf(&buf[2], "%u", &pid);
    cur_task = find_linkedlist_by_pid(pid);
