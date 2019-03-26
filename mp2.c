@@ -226,11 +226,13 @@ int dispatching_t_fn(void *data){
    struct sched_param sparam;
    while(1){
       next_task = get_best_ready_task();
-      if (running_task == NULL)  old_task = NULL;
-      else{
+      if (running_task){
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
+      }
+      else{
+         old_task = NULL;
       }
       if (next_task){
          if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
