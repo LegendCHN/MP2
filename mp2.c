@@ -107,7 +107,7 @@ void wakeup_f(unsigned long data){
 void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
-   sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
+   sscanf(&buf[1], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
@@ -125,7 +125,7 @@ void yield_handler(char *buf){
 void de_registration_handler(char *buf){
    unsigned int pid;
    struct linkedlist *tmp;
-   sscanf(&buf[2], "%u", &pid);
+   sscanf(&buf[1], "%u", &pid);
 
    mutex_lock(&lock);
    // find the corresponing task and delete
@@ -143,9 +143,64 @@ void de_registration_handler(char *buf){
    mutex_unlock(&lock);
 }
 
+struct linkedlist *get_best_ready_task(void){
+   struct linkedlist *next_task = NULL;
+   list_for_each_safe(pos, q, &reglist.list){
+      tmp= list_entry(pos, struct linkedlist, list);
+      if (tmp->task_state != READY)  continue;
+      if (next_task == NULL)  next_task = tmp;
+      else if (tmp->period < next_task->period){
+         next_task = tmp;
+      }
+   }
+   return next_task;
+}
+
+struct linkedlist* find_linkedlist_by_pid(unsigned int pid){
+   list_for_each_safe(pos, q, &reglist.list){
+      tmp= list_entry(pos, struct linkedlist, list);
+      if(tmp->pid == pid){
+         return tmp;
+      }
+   }
+   return NULL;
+}
+
 int dispatching_t_fn(void *data){
+   struct linkedlist *next_task;
+   struct linkedlist *old_task;
+   struct sched_param sparam;
+   while(1){
+      new_task = get_best_ready_task();
+      if (running_task == NULL)  old_task = NULL;
+      else{
+         old_task = find_linkedlist_by_pid(running_task->pid);
+         sparam.sched_priority=0;
+         sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
+      }
+      if (new_task){
+         if(old_task && old_task->task_state == RUNNING && new_task->period < old_task->period){
+            mutex_lock(&lock);
+            old_task->task_state = READY;
+            mutex_unlock(&lock);
+         }
+         if(!old_task || new_task->period < old_task->period){
+            mutex_lock(&lock);
+            new_task->task_state = RUNNING;
+            mutex_unlock(&lock);
+            wake_up_process(new_task->linux_task);
+            sparam.sched_priority = 99;
+            sched_setscheduler(new_task->linux_task, SCHED_FIFO, &sparam);
+            running_task = new_task->linux_task;
+         }
+      }
+
+      set_current_state(TASK_INTERRUPTIBLE);
+      schedule();
+   }
    return 0;
 }
+
 // mp2_init - Called when module is loaded
 int __init mp2_init(void)
 {

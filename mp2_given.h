@@ -26,7 +26,10 @@ struct task_struct* find_task_by_pid(unsigned int nr)
 	return task;
 }
 
-
+struct linkedlist *get_best_ready_task(void);
+void free_linkedlist(void);
+int dispatching_t_fn(void *data);
+void wakeup_f(unsigned long data);
 void registration_handler(char *buf);
 void yield_handler(char *buf);
 void de_registration_handler(char *buf);

@@ -54,7 +54,7 @@ void deregisteration(unsigned int pid){
 }
 
 // Processing Time of each job expressed in milliseconds
-unsigned long computation_time(){
+unsigned long computation_time(void){
     struct timeval t0, t1;
     unsigned long elapsed;
     gettimeofday(&t0, NULL);
