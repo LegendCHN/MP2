@@ -88,6 +88,8 @@ int main(int argc, char* argv[])
         yield(pid);
         num_jobs--;
     }
+    printf("before deregisteration");
     deregisteration(pid);
+    printf("after deregisteration");
 	return 0;
 }
