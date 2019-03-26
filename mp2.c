@@ -226,7 +226,8 @@ int dispatching_t_fn(void *data){
    struct sched_param sparam;
    while(1){
       next_task = get_best_ready_task();
-      if(running_task){
+      if (running_task == NULL)  old_task = NULL;
+      else{
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
@@ -237,7 +238,25 @@ int dispatching_t_fn(void *data){
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         if(!old_task || next_task->period < old_task->period){
+         // if(!old_task || next_task->period < old_task->period){
+         //    mutex_lock(&lock);
+         //    next_task->task_state = RUNNING;
+         //    mutex_unlock(&lock);
+         //    wake_up_process(next_task->linux_task);
+         //    sparam.sched_priority = 99;
+         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+         //    running_task = next_task->linux_task;
+         // }
+         else if(old_task && next_task->period < old_task->period){
+            mutex_lock(&lock);
+            next_task->task_state = RUNNING;
+            mutex_unlock(&lock);
+            wake_up_process(next_task->linux_task);
+            sparam.sched_priority = 99;
+            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+            running_task = next_task->linux_task;
+         }
+         else if(!old_task){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
