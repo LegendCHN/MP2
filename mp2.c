@@ -98,7 +98,7 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
 void wakeup_f(unsigned long data){
    struct linkedlist *tmp = (struct linkedlist *)data;
    mutex_lock(&lock);
-   tmp->state = READY;
+   tmp->task_state = READY;
    mutex_unlock(&lock);
    wake_up_process(dispatching_t);
 }
