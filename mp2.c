@@ -156,7 +156,7 @@ void yield_handler(char *buf){
       // sparam.sched_priority=0; 
       // sched_setscheduler(cur_task->linux_task, SCHED_NORMAL, &sparam);
       schedule();
-      if (running_task != NULL && cur_task == running_task){
+      if (running_task != NULL && cur_task->pid == running_task->pid){
          running_task = NULL;
       }
    }
@@ -175,7 +175,7 @@ void de_registration_handler(char *buf){
    list_for_each_entry(tmp, &reglist.list, list){
       if(tmp->pid == pid){
          del_timer(&tmp->wakeup_timer);
-         if (running_task && running_task == tmp)
+         if (running_task && running_task->pid == tmp->pid)
             running_task = NULL;
          list_del(&tmp->list);
          kmem_cache_free(cache, tmp);
