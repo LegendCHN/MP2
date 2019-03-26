@@ -97,8 +97,8 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    return count;
 }
 
-void wakeup_f(unsigned long data){
-   struct linkedlist *tmp = (struct linkedlist *)data;
+void wakeup_f(unsigned int pid){
+   struct linkedlist *tmp = find_linkedlist_by_pid(pid);
    mutex_lock(&lock);
    tmp->task_state = READY;
    tmp->start_time = jiffies_to_msecs(jiffies);
@@ -120,7 +120,7 @@ void registration_handler(char *buf){
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
-   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
 
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
@@ -238,15 +238,6 @@ int dispatching_t_fn(void *data){
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         // if(!old_task || next_task->period < old_task->period){
-         //    mutex_lock(&lock);
-         //    next_task->task_state = RUNNING;
-         //    mutex_unlock(&lock);
-         //    wake_up_process(next_task->linux_task);
-         //    sparam.sched_priority = 99;
-         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
-         //    running_task = next_task->linux_task;
-         // }
          else if(old_task && next_task->period < old_task->period){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
