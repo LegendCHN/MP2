@@ -12,7 +12,7 @@ struct linkedlist{
 
 	unsigned int task_state;
 	unsigned int pid;
-	unsigned int first_yield;
+	unsigned int first_yield_call;
 	unsigned long time;
 	unsigned long period;
 	unsigned long computation;
