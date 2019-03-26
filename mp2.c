@@ -127,7 +127,7 @@ void yield_handler(char *buf){
 }
 // de-register handler
 void de_registration_handler(char *buf){
-   printk("in de_registration_handler")
+   printk("in de_registration_handler");
    unsigned int pid;
    struct linkedlist *tmp;
    sscanf(&buf[1], "%u", &pid);
