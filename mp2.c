@@ -120,7 +120,7 @@ void registration_handler(char *buf){
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
-   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)data);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
 
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
