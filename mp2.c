@@ -28,7 +28,7 @@ static const struct file_operations mp2_file = {
    .read = mp2_read,
    .write = mp2_write,
 };
-
+static int thread_flag;
 // variables declaration
 static struct proc_dir_entry *proc_dir;
 static struct proc_dir_entry *proc_entry;
@@ -223,7 +223,7 @@ int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
    struct linkedlist *old_task;
    struct sched_param sparam;
-   while(1){
+   while(thread_flag){
       next_task = get_best_ready_task();
       if (running_task == NULL)  old_task = NULL;
       else{
@@ -271,7 +271,7 @@ int __init mp2_init(void)
    // initialize cache
    cache = kmem_cache_create("cache", sizeof (struct linkedlist), 0, SLAB_HWCACHE_ALIGN, NULL);
    dispatching_t = kthread_create(dispatching_t_fn, NULL, "dispatching_t");
-
+thread_flag = 1;
    printk(KERN_ALERT "MP2 MODULE LOADED\n");
    return 0;   
 }
@@ -282,7 +282,7 @@ void __exit mp2_exit(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
-
+thread_flag = 0
    wake_up_process(dispatching_t);
    kthread_stop(dispatching_t);
    kmem_cache_destroy(cache);
