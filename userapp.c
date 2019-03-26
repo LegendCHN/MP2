@@ -16,7 +16,6 @@ void registeration(unsigned int pid, unsigned long period, unsigned long computa
     sprintf(cmd, "echo R %u %lu %lu > /proc/mp2/status", pid, period, computation);
     system(cmd);
     printf("registered pid %u\n", pid);
-    while(true);
 }
 
 // determine whether a process is registered
