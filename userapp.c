@@ -16,6 +16,9 @@ void registeration(unsigned int pid, unsigned long period, unsigned long computa
     sprintf(cmd, "echo R %u %lu %lu > /proc/mp2/status", pid, period, computation);
     system(cmd);
     printf("registered pid %u\n", pid);
+    while(true){
+
+    };
 }
 
 // determine whether a process is registered
@@ -25,7 +28,6 @@ bool registered(unsigned int pid){
     fp = fopen("/proc/mp2/status", "r");
 
     while(fscanf(fp, "pid: %u", &tmp) != EOF){
-        printf("checking.........")
         if(tmp == pid){
             printf("pid %u exists in /proc\n", pid);
             return true;
