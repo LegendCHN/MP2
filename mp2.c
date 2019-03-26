@@ -171,10 +171,10 @@ void __exit mp2_exit(void)
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
 
-   kthread_stop(dispatching_t);
-   kmem_cache_destroy(cache);
+   // kthread_stop(dispatching_t);
+   // kmem_cache_destroy(cache);
    // destroy linked list
-   free_linkedlist();
+   // free_linkedlist();
    // destroy dir and file
    remove_proc_entry(FILENAME, proc_dir);
    remove_proc_entry(DIRECTORY, NULL);
