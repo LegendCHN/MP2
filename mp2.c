@@ -101,7 +101,7 @@ void wakeup_f(unsigned int pid){
 
 // register handler
 void registration_handler(char *buf){
-   struct task_struct *cur_task;
+   struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
    sscanf(buf, "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
 
@@ -120,7 +120,7 @@ void yield_handler(char *buf){
 // de-register handler
 void de_registration_handler(char *buf){
    unsigned int pid;
-   struct task_struct *tmp;
+   struct linkedlist *tmp;
    sscanf(buf, "%u", &pid);
 
    // find the corresponing task and delete
