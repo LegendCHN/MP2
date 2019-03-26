@@ -42,10 +42,10 @@ static struct task_struct *running_task = NULL;
 // helper function to free linkedlist space
 void free_linkedlist(void){
    list_for_each_safe(pos, q, &reglist.list){
-       tmp= list_entry(pos, struct linkedlist, list);
-       list_del(pos);
-       kfree(tmp);
-       kmem_cache_free(cache, tmp);
+      tmp= list_entry(pos, struct linkedlist, list);
+      del_timer(&tmp->wakeup_timer);
+      list_del(pos);
+      kmem_cache_free(cache, tmp);
    }
 }
 
@@ -95,9 +95,10 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    return count;
 }
 
-void wakeup_f(unsigned int pid){
+void wakeup_f(unsigned long data){
+   struct linkedlist *tmp = (struct linkedlist *)data;
    mutex_lock(&lock);
-   find_task_by_pid(pid)->state = READY;
+   tmp->state = READY;
    mutex_unlock(&lock);
    wake_up_process(dispatching_t);
 }
@@ -110,7 +111,7 @@ void registration_handler(char *buf){
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
-   // setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
 
    mutex_lock(&lock);
    list_add(&(tmp->list), &(reglist.list));
@@ -174,6 +175,7 @@ void __exit mp2_exit(void)
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
 
+   wake_up_process(dispatching_t);
    kthread_stop(dispatching_t);
    kmem_cache_destroy(cache);
    // destroy linked list
