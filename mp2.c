@@ -75,6 +75,7 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
+   printk("in write");
    char *buf;
    char type;
    buf = (char *)kmalloc(count, GFP_KERNEL);
@@ -91,6 +92,7 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
          de_registration_handler(buf);
          break;
    }
+   printk("out write");
    kfree(buf);
    return count;
 }
@@ -108,6 +110,7 @@ void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
    sscanf(&buf[1], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
+   printk("pid: %u", cur_task->pid);
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
