@@ -49,7 +49,7 @@ void free_linkedlist(void){
 }
 
 // read function to show pid, period and processing time
-static ssize_t mp2_read (struct file *file, char *buffer, size_t count, loff_t *data){
+static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, loff_t *data){
    int copied;
    int length;
    char *buf;
@@ -77,7 +77,8 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    char *buf;
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
-   switch(buf[0]){
+   char type = buf[0];
+   switch(type){
       case 'R':
          registration_handler(buf);
          break;
@@ -171,10 +172,10 @@ void __exit mp2_exit(void)
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
 
-   // kthread_stop(dispatching_t);
-   // kmem_cache_destroy(cache);
+   kthread_stop(dispatching_t);
+   kmem_cache_destroy(cache);
    // destroy linked list
-   // free_linkedlist();
+   free_linkedlist();
    // destroy dir and file
    remove_proc_entry(FILENAME, proc_dir);
    remove_proc_entry(DIRECTORY, NULL);
