@@ -76,12 +76,11 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
-   char op;
    printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
-   op = buf[0];
    copy_from_user(buf, buffer, count);
-   switch(op){
+   type = (char) buf[0];
+   switch(type){
       case 'R':
          registration_handler(buf);
          break;
@@ -113,7 +112,7 @@ void registration_handler(char *buf){
    sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
    printk("pid: %u\n", cur_task->pid);
    if(admission_control(cur_task->period, cur_task->computation) == -1){
-      printk("Not able to register pid %u due to admission_control", cur_task->pid);
+      printk("Not able to register pid %u due to admission_control");
       kmem_cache_free(cache, cur_task);
       return;
    }
@@ -132,7 +131,7 @@ void yield_handler(char *buf){
    unsigned int pid;
    struct linkedlist *cur_task;
    unsigned long running_t, sleeping_t;
-   // struct sched_param sparam; 
+   struct sched_param sparam; 
    printk("in yield_handler\n");
    sscanf(&buf[2], "%u", &pid);
    cur_task = find_linkedlist_by_pid(pid);
@@ -225,38 +224,20 @@ int dispatching_t_fn(void *data){
    struct linkedlist *old_task;
    struct sched_param sparam;
    while(1){
-      if(!running_task) old_task = NULL;
+      next_task = get_best_ready_task();
+      if (running_task == NULL)  old_task = NULL;
       else{
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
-      next_task = get_best_ready_task();
       if (next_task){
          if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
             mutex_lock(&lock);
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         // else if(old_task && next_task->period < old_task->period){
-         //    mutex_lock(&lock);
-         //    next_task->task_state = RUNNING;
-         //    mutex_unlock(&lock);
-         //    wake_up_process(next_task->linux_task);
-         //    sparam.sched_priority = 99;
-         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
-         //    running_task = next_task->linux_task;
-         // }
-         // else if(!old_task){
-         //    mutex_lock(&lock);
-         //    next_task->task_state = RUNNING;
-         //    mutex_unlock(&lock);
-         //    wake_up_process(next_task->linux_task);
-         //    sparam.sched_priority = 99;
-         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
-         //    running_task = next_task->linux_task;
-         // }
-         if(old_task == NULL || next_task->period < old_task->period){
+         if(!old_task || next_task->period < old_task->period){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
