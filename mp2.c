@@ -133,13 +133,13 @@ void yield_handler(char *buf){
    sscanf(&buf[2], "%u", &pid);
    cur_task = find_linkedlist_by_pid(pid);
    // if it is the first yield call, the running time should be 0
-   if(cur_task->first_yield_call){
-      running_t = 0;
-      cur_task->first_yield_call = 0;
-   }
-   else{
+   // if(cur_task->first_yield_call){
+   //    running_t = 0;
+   //    cur_task->first_yield_call = 0;
+   // }
+   // else{
       running_t = jiffies_to_msecs(jiffies) - cur_task->start_time;
-   }
+   // }
    // set timer if running time is within one period
    sleeping_t = cur_task->period - running_t;
    if(sleeping_t > 0){
