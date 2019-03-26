@@ -237,16 +237,25 @@ int dispatching_t_fn(void *data){
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         else if(old_task && next_task->period < old_task->period){
-            mutex_lock(&lock);
-            next_task->task_state = RUNNING;
-            mutex_unlock(&lock);
-            wake_up_process(next_task->linux_task);
-            sparam.sched_priority = 99;
-            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
-            running_task = next_task->linux_task;
-         }
-         else if(!old_task){
+         // else if(old_task && next_task->period < old_task->period){
+         //    mutex_lock(&lock);
+         //    next_task->task_state = RUNNING;
+         //    mutex_unlock(&lock);
+         //    wake_up_process(next_task->linux_task);
+         //    sparam.sched_priority = 99;
+         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+         //    running_task = next_task->linux_task;
+         // }
+         // else if(!old_task){
+         //    mutex_lock(&lock);
+         //    next_task->task_state = RUNNING;
+         //    mutex_unlock(&lock);
+         //    wake_up_process(next_task->linux_task);
+         //    sparam.sched_priority = 99;
+         //    sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+         //    running_task = next_task->linux_task;
+         // }
+         if(old_task == NULL || next_task->period < old_task->period){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
