@@ -232,12 +232,13 @@ int dispatching_t_fn(void *data){
       }
       next_task = get_best_ready_task();
       if (next_task){
-         if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
+         if(old_task){
+            if(old_task->task_state == RUNNING && next_task->period < old_task->period)
                mutex_lock(&lock);
                old_task->task_state = READY;
                mutex_unlock(&lock);
          }
-         else if(old_task && next_task->period < old_task->period){
+         else{
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
@@ -246,7 +247,7 @@ int dispatching_t_fn(void *data){
             sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
             running_task = next_task->linux_task;
          }
-         else if(!old_task){
+         if(next_task->period < old_task->period){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
