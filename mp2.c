@@ -28,7 +28,7 @@ static const struct file_operations mp2_file = {
    .read = mp2_read,
    .write = mp2_write,
 };
-static int thread_flag;
+
 // variables declaration
 static struct proc_dir_entry *proc_dir;
 static struct proc_dir_entry *proc_entry;
@@ -177,7 +177,7 @@ void de_registration_handler(char *buf){
          del_timer(&tmp->wakeup_timer);
          if (running_task && running_task->pid == tmp->pid)
             running_task = NULL;
-         list_del(&tmp->list);
+         list_del(pos);
          kmem_cache_free(cache, tmp);
          break;
       }
@@ -221,23 +221,32 @@ int admission_control(unsigned long period, unsigned long computation){
 }
 int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
-   struct linkedlist *old_task;
+   struct linkedlist *old_task = NULL;
    struct sched_param sparam;
-   while(thread_flag){
-      next_task = get_best_ready_task();
-      if (running_task == NULL)  old_task = NULL;
-      else{
+   while(1){
+      // get old_task
+      if (running_task != NULL){
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
+      next_task = get_best_ready_task();
       if (next_task){
          if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
-            mutex_lock(&lock);
-            old_task->task_state = READY;
-            mutex_unlock(&lock);
+               mutex_lock(&lock);
+               old_task->task_state = READY;
+               mutex_unlock(&lock);
          }
-         if(!old_task || next_task->period < old_task->period){
+         else if(old_task && next_task->period < old_task->period){
+            mutex_lock(&lock);
+            next_task->task_state = RUNNING;
+            mutex_unlock(&lock);
+            wake_up_process(next_task->linux_task);
+            sparam.sched_priority = 99;
+            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+            running_task = next_task->linux_task;
+         }
+         else if(!old_task){
             mutex_lock(&lock);
             next_task->task_state = RUNNING;
             mutex_unlock(&lock);
@@ -247,7 +256,6 @@ int dispatching_t_fn(void *data){
             running_task = next_task->linux_task;
          }
       }
-
       set_current_state(TASK_INTERRUPTIBLE);
       schedule();
    }
@@ -271,7 +279,7 @@ int __init mp2_init(void)
    // initialize cache
    cache = kmem_cache_create("cache", sizeof (struct linkedlist), 0, SLAB_HWCACHE_ALIGN, NULL);
    dispatching_t = kthread_create(dispatching_t_fn, NULL, "dispatching_t");
-thread_flag = 1;
+
    printk(KERN_ALERT "MP2 MODULE LOADED\n");
    return 0;   
 }
@@ -282,7 +290,7 @@ void __exit mp2_exit(void)
    #ifdef DEBUG
    printk(KERN_ALERT "MP2 MODULE UNLOADING\n");
    #endif
-thread_flag = 0;
+
    wake_up_process(dispatching_t);
    kthread_stop(dispatching_t);
    kmem_cache_destroy(cache);
