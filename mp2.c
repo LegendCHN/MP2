@@ -117,7 +117,7 @@ void registration_handler(char *buf){
    setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
 
    mutex_lock(&lock);
-   list_add(&(tmp->list), &(reglist.list));
+   list_add(&(cur_task->list), &(reglist.list));
    mutex_unlock(&lock);
    printk("out reg handler");
 }
