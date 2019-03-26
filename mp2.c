@@ -106,7 +106,7 @@ void wakeup_f(unsigned int pid){
 void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
-   sscanf(&buf[1], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
+   sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
@@ -124,7 +124,7 @@ void yield_handler(char *buf){
 void de_registration_handler(char *buf){
    unsigned int pid;
    struct linkedlist *tmp;
-   sscanf(buf, "%u", &pid);
+   sscanf(&buf[2], "%u", &pid);
 
    mutex_lock(&lock);
    // find the corresponing task and delete
