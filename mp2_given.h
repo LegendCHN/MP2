@@ -3,6 +3,8 @@
 
 #include <linux/pid.h>
 #include <linux/sched.h>
+#include <linux/timer.h>
+
 struct linkedlist{
 	struct list_head list;
 	struct task_struct* linux_task;

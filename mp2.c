@@ -77,7 +77,7 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    char *buf;
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
-   char type = buf[0];
+   char type = (char) buf[0];
    switch(type){
       case 'R':
          registration_handler(buf);
