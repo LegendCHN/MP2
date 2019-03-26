@@ -222,12 +222,11 @@ int admission_control(unsigned long period, unsigned long computation){
 }
 int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
-   struct linkedlist *old_task;
+   struct linkedlist *old_task = NULL;
    struct sched_param sparam;
    while(1){
       next_task = get_best_ready_task();
-      if (running_task == NULL)  old_task = NULL;
-      else{
+      if(running_task){
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
