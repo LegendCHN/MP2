@@ -12,9 +12,11 @@ struct linkedlist{
 
 	unsigned int task_state;
 	unsigned int pid;
+	unsigned int first_yield;
 	unsigned long time;
 	unsigned long period;
 	unsigned long computation;
+	unsigned long start_time;
 };
 
 struct task_struct* find_task_by_pid(unsigned int nr)

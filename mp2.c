@@ -75,9 +75,9 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
-   printk("in write");
    char *buf;
    char type;
+   printk("in write");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
    type = (char) buf[0];
@@ -109,11 +109,12 @@ void wakeup_f(unsigned long data){
 void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
-   sscanf(&buf[1], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
+   sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
    printk("pid: %u", cur_task->pid);
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
+   cur_task->first_yield_call = 1;
    setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
 
    mutex_lock(&lock);
@@ -123,14 +124,16 @@ void registration_handler(char *buf){
 }
 // yield handler
 void yield_handler(char *buf){
+
    printk("in yield_handler");
+   printk("out yield_handler");
 }
 // de-register handler
 void de_registration_handler(char *buf){
-   printk("in de_registration_handler");
    unsigned int pid;
    struct linkedlist *tmp;
-   sscanf(&buf[1], "%u", &pid);
+   printk("in de_registration_handler");
+   sscanf(&buf[2], "%u", &pid);
 
    mutex_lock(&lock);
    // find the corresponing task and delete
