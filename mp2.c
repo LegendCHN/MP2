@@ -123,14 +123,19 @@ void de_registration_handler(char *buf){
    struct linkedlist *tmp;
    sscanf(buf, "%u", &pid);
 
-   // find the corresponing task and delete
-   tmp = find_task_by_pid(pid);
    mutex_lock(&lock);
-   del_timer(&tmp->wakeup_timer);
-   if (!running_task && running_task == tmp)
-      running_task = NULL;
-   list_del(&tmp->list);
-   kmem_cache_free(cache, tmp);
+   // find the corresponing task and delete
+   list_for_each_entry(tmp, &reglist.list, list){
+      if(tmp->pid == pid){
+         del_timer(&tmp->wakeup_timer);
+         if (!running_task && running_task == tmp->linux_task)
+            running_task = NULL;
+         list_del(&tmp->list);
+         kmem_cache_free(cache, tmp);
+         break;
+      }
+
+   }
    mutex_unlock(&lock);
 }
 
