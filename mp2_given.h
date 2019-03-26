@@ -28,6 +28,7 @@ struct task_struct* find_task_by_pid(unsigned int nr)
 	return task;
 }
 
+struct linkedlist* find_linkedlist_by_pid(unsigned int pid);
 struct linkedlist *get_best_ready_task(void);
 void free_linkedlist(void);
 int dispatching_t_fn(void *data);

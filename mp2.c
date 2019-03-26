@@ -145,7 +145,7 @@ void yield_handler(char *buf){
       mod_timer(&(cur_task->wakeup_timer), msecs_to_jiffies(sleeping_t) + jiffies);
 
       mutex_lock(&lock);
-      sched_task->state = SLEEPING;
+      cur_task->task_state = SLEEPING;
       mutex_unlock(&lock);
       set_task_state(cur_task->linux_task, TASK_UNINTERRUPTIBLE);
       sparam.sched_priority=0; 
