@@ -77,7 +77,7 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
    char type;
-   printk("in write");
+   printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
    type = (char) buf[0];
@@ -92,7 +92,7 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
          de_registration_handler(buf);
          break;
    }
-   printk("out write");
+   printk("out write\n");
    kfree(buf);
    return count;
 }
@@ -111,8 +111,12 @@ void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
    sscanf(&buf[2], "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
-   printk("pid: %u", cur_task->pid);
-
+   printk("pid: %u\n", cur_task->pid);
+   if(admission_control(cur_task->period, cur_task->computation) == -1){
+      printk("Not able to register pid %u due to admission_control");
+      kmem_cache_free(cache, cur_task);
+      return;
+   }
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
@@ -121,7 +125,7 @@ void registration_handler(char *buf){
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
    mutex_unlock(&lock);
-   printk("out reg handler");
+   printk("out reg handler\n");
 }
 // yield handler
 void yield_handler(char *buf){
@@ -129,7 +133,7 @@ void yield_handler(char *buf){
    struct linkedlist *cur_task;
    unsigned long running_t, sleeping_t;
    struct sched_param sparam; 
-   printk("in yield_handler");
+   printk("in yield_handler\n");
    sscanf(&buf[2], "%u", &pid);
    cur_task = find_linkedlist_by_pid(pid);
    // if it is the first yield call, the running time should be 0
@@ -157,13 +161,13 @@ void yield_handler(char *buf){
       }
    }
    wake_up_process(dispatching_t); 
-   printk("out yield_handler");
+   printk("out yield_handler\n");
 }
 // de-register handler
 void de_registration_handler(char *buf){
    unsigned int pid;
    struct linkedlist *tmp;
-   printk("in de_registration_handler");
+   printk("in de_registration_handler\n");
    sscanf(&buf[2], "%u", &pid);
 
    mutex_lock(&lock);
@@ -180,7 +184,7 @@ void de_registration_handler(char *buf){
 
    }
    mutex_unlock(&lock);
-   printk("out de_registration_handler");
+   printk("out de_registration_handler\n");
 }
 
 struct linkedlist *get_best_ready_task(void){
@@ -206,6 +210,16 @@ struct linkedlist* find_linkedlist_by_pid(unsigned int pid){
    return NULL;
 }
 
+bool admission_control(unsigned long period, unsigned long computation){
+   unsigned long res = 0;
+   list_for_each_safe(pos, q, &reglist.list){
+      tmp= list_entry(pos, struct linkedlist, list);
+      res += tmp->computation * 1000 / tmp->period;
+   }
+   res += computation * 1000 / period;
+   if (res <= 693)   return 0;
+   return -1;
+}
 int dispatching_t_fn(void *data){
    struct linkedlist *next_task;
    struct linkedlist *old_task;

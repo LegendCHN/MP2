@@ -28,6 +28,7 @@ struct task_struct* find_task_by_pid(unsigned int nr)
 	return task;
 }
 
+bool admission_control(unsigned long period, unsigned long computation);
 struct linkedlist* find_linkedlist_by_pid(unsigned int pid);
 struct linkedlist *get_best_ready_task(void);
 void free_linkedlist(void);
