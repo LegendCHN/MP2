@@ -116,10 +116,10 @@ void registration_handler(char *buf){
       kmem_cache_free(cache, cur_task);
       return;
    }
-   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
 
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
@@ -171,16 +171,16 @@ void de_registration_handler(char *buf){
 
    mutex_lock(&lock);
    // find the corresponing task and delete
-   list_for_each_safe(pos, q, &reglist.list){
-      tmp= list_entry(pos, struct linkedlist, list);
+   list_for_each_entry(tmp, &reglist.list, list){
       if(tmp->pid == pid){
          del_timer(&tmp->wakeup_timer);
          if (running_task && running_task->pid == tmp->pid)
             running_task = NULL;
-         list_del(pos);
+         list_del(&tmp->list);
          kmem_cache_free(cache, tmp);
          break;
       }
+
    }
    mutex_unlock(&lock);
    printk("out de_registration_handler\n");
@@ -225,7 +225,6 @@ int dispatching_t_fn(void *data){
    struct sched_param sparam;
    while(1){
       next_task = get_best_ready_task();
-      // get old_task
       if (running_task == NULL)  old_task = NULL;
       else{
          old_task = find_linkedlist_by_pid(running_task->pid);
