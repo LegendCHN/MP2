@@ -62,7 +62,6 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
    }
 
    list_for_each_entry(tmp, &reglist.list, list){
-      printk("here")
       length = sprintf(buf + copied, "pid: %u, period: %lu, processing time: %lu\n", tmp->pid, tmp->period, tmp->computation);
       copied += length;
    }
