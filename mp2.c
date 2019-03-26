@@ -76,12 +76,10 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
 // write function to add pid list entry to linkedlist
 static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t count, loff_t *data){
    char *buf;
-   char type;
    printk("in write\n");
    buf = (char *)kmalloc(count, GFP_KERNEL);
    copy_from_user(buf, buffer, count);
-   type = (char) buf[0];
-   switch(type){
+   switch(buf[0]){
       case 'R':
          registration_handler(buf);
          break;
@@ -97,8 +95,8 @@ static ssize_t mp2_write (struct file *file, const char __user *buffer, size_t c
    return count;
 }
 
-void wakeup_f(unsigned long data){
-   struct linkedlist *tmp = (struct linkedlist *)data;
+void wakeup_f(unsigned int pid){
+   struct linkedlist *tmp = find_linkedlist_by_pid(pid);
    mutex_lock(&lock);
    tmp->task_state = READY;
    tmp->start_time = jiffies_to_msecs(jiffies);
@@ -120,7 +118,7 @@ void registration_handler(char *buf){
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
    cur_task->first_yield_call = 1;
-   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, (unsigned long)cur_task);
+   setup_timer(&(cur_task->wakeup_timer), (void *)wakeup_f, cur_task->pid);
 
    mutex_lock(&lock);
    list_add(&(cur_task->list), &(reglist.list));
