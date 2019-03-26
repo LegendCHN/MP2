@@ -101,6 +101,7 @@ void wakeup_f(unsigned long data){
    struct linkedlist *tmp = (struct linkedlist *)data;
    mutex_lock(&lock);
    tmp->task_state = READY;
+   tmp->start_time = jiffies_to_msecs(jiffies);
    mutex_unlock(&lock);
    wake_up_process(dispatching_t);
 }
