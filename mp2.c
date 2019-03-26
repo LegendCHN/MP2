@@ -171,27 +171,27 @@ int dispatching_t_fn(void *data){
    struct linkedlist *old_task;
    struct sched_param sparam;
    while(1){
-      new_task = get_best_ready_task();
+      next_task = get_best_ready_task();
       if (running_task == NULL)  old_task = NULL;
       else{
          old_task = find_linkedlist_by_pid(running_task->pid);
          sparam.sched_priority=0;
          sched_setscheduler(running_task, SCHED_NORMAL, &sparam);
       }
-      if (new_task){
-         if(old_task && old_task->task_state == RUNNING && new_task->period < old_task->period){
+      if (next_task){
+         if(old_task && old_task->task_state == RUNNING && next_task->period < old_task->period){
             mutex_lock(&lock);
             old_task->task_state = READY;
             mutex_unlock(&lock);
          }
-         if(!old_task || new_task->period < old_task->period){
+         if(!old_task || next_task->period < old_task->period){
             mutex_lock(&lock);
-            new_task->task_state = RUNNING;
+            next_task->task_state = RUNNING;
             mutex_unlock(&lock);
-            wake_up_process(new_task->linux_task);
+            wake_up_process(next_task->linux_task);
             sparam.sched_priority = 99;
-            sched_setscheduler(new_task->linux_task, SCHED_FIFO, &sparam);
-            running_task = new_task->linux_task;
+            sched_setscheduler(next_task->linux_task, SCHED_FIFO, &sparam);
+            running_task = next_task->linux_task;
          }
       }
 
