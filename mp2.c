@@ -124,8 +124,35 @@ void registration_handler(char *buf){
 }
 // yield handler
 void yield_handler(char *buf){
-
+   unsigned int pid;
+   struct linkedlist *cur_task;
+   unsigned long running_t, sleeping_t;
+   struct sched_param sparam; 
    printk("in yield_handler");
+   sscanf(&buf[2], "%u", &pid);
+   cur_task = find_linkedlist_by_pid(pid);
+   // if it is the first yield call, the running time should be 0
+   if(cur_task->first_yield_call){
+      running_t = 0;
+      cur_task->first_yield_call = 0;
+   }
+   else{
+      running_t = jiffies_to_msecs(jiffies) - cur_task->start_time;
+   }
+   // set timer if running time is within one period
+   sleeping_t = cur_task->period - running_t;
+   if(sleeping_t > 0){
+      mod_timer(&(cur_task->wakeup_timer), msecs_to_jiffies(sleeping_t) + jiffies);
+
+      mutex_lock(&lock);
+      sched_task->state = SLEEPING;
+      mutex_unlock(&lock);
+      set_task_state(cur_task->linux_task, TASK_UNINTERRUPTIBLE);
+      sparam.sched_priority=0; 
+      sched_setscheduler(cur_task->linux_task, SCHED_NORMAL, &sparam);
+      schedule();
+   }
+   wake_up_process(dispatching_t); 
    printk("out yield_handler");
 }
 // de-register handler
