@@ -29,11 +29,11 @@ struct task_struct* find_task_by_pid(unsigned int nr)
 }
 
 int admission_control(unsigned long period, unsigned long computation);
-struct linkedlist* find_linkedlist_by_pid(unsigned long data);
+struct linkedlist* find_linkedlist_by_pid(unsigned int pid);
 struct linkedlist *get_best_ready_task(void);
 void free_linkedlist(void);
 int dispatching_t_fn(void *data);
-void wakeup_f(unsigned int pid);
+void wakeup_f(unsigned long data);
 void registration_handler(char *buf);
 void yield_handler(char *buf);
 void de_registration_handler(char *buf);
