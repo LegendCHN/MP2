@@ -37,7 +37,7 @@ static struct list_head *pos, *q;
 static struct mutex lock;
 static struct kmem_cache *cache;
 static struct task_struct *dispatching_t;
-
+static struct task_struct *running_task = NULL;
 // helper function to free linkedlist space
 void free_linkedlist(void){
    list_for_each_safe(pos, q, &reglist.list){
@@ -62,7 +62,7 @@ static ssize_t mp2_read (struct file *file, char __user *buffer, size_t count, l
    }
 
    list_for_each_entry(tmp, &reglist.list, list){
-      length = sprintf(buf + copied, "PID: %d, Period: %lu, Processing Time: %lu\n", tmp->pid, tmp->period, tmp->computation);
+      length = sprintf(buf + copied, "pid: %u, period: %lu, processing time: %lu\n", tmp->pid, tmp->period, tmp->computation);
       copied += length;
    }
    copy_to_user(buffer, buf, copied);
@@ -103,7 +103,7 @@ void wakeup_f(unsigned int pid){
 void registration_handler(char *buf){
    struct linkedlist *cur_task;
    cur_task = (struct linkedlist *)kmem_cache_alloc(cache, GFP_KERNEL);
-   sscanf(buf, "%d %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
+   sscanf(buf, "%u %lu %lu", &cur_task->pid, &cur_task->period, &cur_task->computation);
 
    cur_task->linux_task = find_task_by_pid(cur_task->pid);
    cur_task->task_state = SLEEPING;
@@ -119,8 +119,21 @@ void yield_handler(char *buf){
 }
 // de-register handler
 void de_registration_handler(char *buf){
-   
+   unsigned int pid;
+   struct linkedlist *tmp;
+   sscanf(buf, "%u", &pid);
+
+   // find the corresponing task and delete
+   tmp = find_task_by_pid(pid);
+   mutex_lock(&lock);
+   del_timer(&tmp->wakeup_timer);
+   if (!running_task && running_task == tmp)
+      running_task = NULL;
+   list_del(&tmp->list);
+   kmem_cache_free(cache, tmp);
+   mutex_unlock(&lock);
 }
+
 int dispatching_t_fn(void *data){
    return 0;
 }
