@@ -9,6 +9,7 @@
 #include <linux/mutex.h> 
 #include <linux/slab.h>
 #include <linux/kthread.h>
+#include <linux/list.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Group_ID");
